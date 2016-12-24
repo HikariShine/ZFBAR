@@ -1,0 +1,4 @@
+执行下面项目的参数
+E:\project\spring-cloud-microservice-example>mvn install -DDOCKER_HOST=tcp://19
+.168.99.100:2376 -DDOCKER_TLS_VERIFY=1 -DDOCKER_CERT_PATH=C:\Users\Administrato
+\.docker\machine\machines\default -DDOCKER_MACHINE_NAME=default
