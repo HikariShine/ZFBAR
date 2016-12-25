@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>VR红包破解工具</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+<script src="http://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/cropper/2.3.4/cropper.js"></script>
+<link href="http://cdn.bootcss.com/cropper/2.3.4/cropper.min.css" rel="stylesheet">
+<style type="text/css">
+/* Limit image width to avoid overflow the container */
+img {
+/*   max-width: 100%; /* This rule is very important, please do not ignore this! */ */
+}
+</style>
+<body>
+	<input type="file" name="pictureFile" id="pictureFile">
+	<input type="button" value="处理" id="upload" onClick="upload()">
+	<br />
+	<img style="display:none;" id="preview" />
+	<br />
+	<form id="downloadform" action="/download" method="post" style="display:none;">
+		<input type="hidden" name="fileName" id="fileName">
+		<input type="submit" id="download" value="下载">
+	</form>
+	<div>
+		<canvas id="canvas"></canvas>
+	</div>
+</body>
+<script>
+$('#pictureFile').change(function(){
+    var file=this.files[0];
+
+    var reader=new FileReader();
+    reader.onload=function(){
+        // 通过 reader.result 来访问生成的 DataURL
+        var url=reader.result;
+        setImageURL(url);
+    };
+    reader.readAsDataURL(file);
+});
+var image = $("#preview")[0];
+function setImageURL(url){
+    image.src=url;
+    start();
+}
+var $canvas = $('#canvas');
+var $image = $('#preview');
+var image = $image[0];
+var cropper;
+function start() {
+    var width = $(image).width();
+    var height = $(image).height();
+    var canvas = $canvas[0];
+
+    canvas.width = width / 2;
+    canvas.height = height / 2 - 100;
+    canvas.getContext('2d').drawImage(
+    		image,
+      width / 4, height / 2 - 100, image.naturalWidth / 2, image.naturalHeight / 2,
+      0, 0, width / 2, height / 2
+    );
+
+    cropper = $canvas.cropper({
+    	viewMode:2,
+    	dragMode:'move',
+		aspectRatio: 1 / 1,
+		autoCropArea: 0.9,
+		background: false,
+		minContainerHeight: 0,
+		minContainerWidth : 0,
+    });
+//     cropper.cropper('setCanvasData', {top:0});
+}
+  
+function upload() {
+	cropper.cropper('getCroppedCanvas').toBlob(function (blob) {
+		  var formData = new FormData();
+
+		  formData.append('pictureFile', blob);
+
+		  $.ajax('/process', {
+		    method: "POST",
+		    data: formData,
+		    processData: false,
+		    contentType: false,
+		    success: function (response) {
+		      console.log(response);
+		      $("#fileName").val(response);
+		      $("#downloadform").show();
+// 		      $("#download").click();
+		    },
+		    error: function () {
+		      console.log('Upload error');
+		    }
+		  });
+		});
+}
+//   if (image.complete) {
+//     start.call(image);
+//   } else {
+//     $image.one('load', start);
+//   };
+</script>
+<script>
+	function dataURLtoBlob(dataurl) {
+	    var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+	        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+	    while(n--){
+	        u8arr[n] = bstr.charCodeAt(n);
+	    }
+	    return new Blob([u8arr], {type:mime});
+	}
+	//test:
+	var blob = dataURLtoBlob('data:text/plain;base64,YWFhYWFhYQ==');
+
+</script>
+</html>
